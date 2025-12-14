@@ -1,0 +1,395 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decision Matrix - What Are You Writing?</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@100..900&display=swap');
+
+    .font-header { font-family: 'Playfair Display', serif; }
+    .font-body { font-family: 'Inter', sans-serif; }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #F5EFE6; }
+    ::-webkit-scrollbar-thumb { background: #C9A24D; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #8A7A5E; }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            parchment: '#F5EFE6',
+            burgundy: '#5A1E2D',
+            gold: '#C9A24D',
+            charcoal: '#1F1F1F',
+            'soft-gray': '#4A4A4A',
+            'soft-accent': '#8A7A5E',
+          },
+          fontFamily: {
+            header: ['Playfair Display', 'serif'],
+            body: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="font-body bg-parchment min-h-screen p-0 flex items-start justify-center text-soft-gray antialiased">
+
+  <!-- Subtle “less white / more luxe” overlay -->
+  <div class="pointer-events-none fixed inset-0"
+       style="background:
+        radial-gradient(900px 600px at 50% 0%, rgba(90,30,45,0.10), rgba(245,239,230,0) 60%),
+        radial-gradient(900px 600px at 50% 100%, rgba(201,162,77,0.10), rgba(245,239,230,0) 55%);">
+  </div>
+
+  <div id="app" class="relative w-full max-w-4xl px-4 sm:px-8 py-10">
+
+    <!-- Header -->
+    <header class="text-center mb-8 sm:mb-12">
+      <h1 class="font-header text-charcoal text-4xl sm:text-5xl font-semibold mb-2 leading-none tracking-tight">
+        Decision Matrix
+      </h1>
+
+      <div class="w-full max-w-sm h-1.5 bg-gold mx-auto mb-4 rounded-full"></div>
+
+      <h2 class="font-header text-burgundy text-3xl sm:text-4xl font-normal mt-0 mb-4 leading-none">
+        What Are You Writing?
+      </h2>
+
+      <p class="text-lg text-soft-accent italic mt-4">
+        This tool will help you choose the right container for your idea.
+      </p>
+    </header>
+
+    <!-- Main Card -->
+    <div id="tool-container" class="bg-white/90 backdrop-blur-sm p-6 sm:p-10 rounded-2xl shadow-xl border border-gold/40">
+      <!-- injected -->
+    </div>
+  </div>
+
+  <script>
+    /**
+     * IMPORTANT:
+     * Replace this with your actual GHL Module 1 lesson URL.
+     * If this tool runs inside an iframe (GHL), window.top.location will route the parent page.
+     */
+    const MODULE_1_URL = "https://YOUR-GHL-MODULE-1-LESSON-LINK-HERE";
+
+    const QUESTIONS = [
+      {
+        id: 1,
+        text: "Can this idea be fully realized in under 10 minutes of reading/viewing time, or does it require hours of sustained attention?",
+        answers: [
+          { label: "Yes, easily. (A flash of insight)", score: { SMD: 3, POE: 2, SST: 1 } },
+          { label: "Yes, but it needs 30–60 minutes. (A distinct moment)", score: { SST: 2, FEA: 1, TVP: 1 } },
+          { label: "No, it requires hours of sustained attention. (A journey)", score: { NOV: 3, TVP: 2, FEA: 1 } },
+          { label: "I just have a feeling/image. (Not a story yet)", score: { POE: 2, UNC: 1 } }
+        ]
+      },
+      {
+        id: 2,
+        text: "Is the primary focus on a single, internal emotional state, or on an external plot involving multiple people?",
+        answers: [
+          { label: "Internal state / single strong voice. (A monologue or mood)", score: { POE: 3, SST: 2 } },
+          { label: "Single character with one external problem. (A clear mission)", score: { FEA: 3, SST: 1 } },
+          { label: "Multiple characters with ongoing, parallel lives. (An ecosystem)", score: { TVP: 3, NOV: 2 } },
+          { label: "Focus is on immediate reaction or a quick message.", score: { SMD: 3 } }
+        ]
+      },
+      {
+        id: 3,
+        text: "After the main conflict resolves, does the story end completely, or does the core setup remain ready for new conflicts?",
+        answers: [
+          { label: "It ends completely and irrevocably. (The promise is fulfilled)", score: { FEA: 2, SST: 1, NOV: 1 } },
+          { label: "The core setup remains, ready for the next weekly or seasonal event.", score: { TVP: 3 } },
+          { label: "The structure itself is inherently repetitive or thematic (e.g., a new monster every time).", score: { TVP: 2, NOV: 1 } },
+          { label: "It’s a single event/gag with no lasting consequence.", score: { SMD: 3 } }
+        ]
+      },
+      {
+        id: 4,
+        text: "How much deep backstory, internal monologue, and world-building is essential to communicate the idea?",
+        answers: [
+          { label: "None; the moment/feeling speaks for itself.", score: { POE: 3, SMD: 2 } },
+          { label: "Some context, but dialogue and action are key.", score: { FEA: 3, TVP: 2, SST: 1 } },
+          { label: "Extensive detail, history, and inner thoughts are mandatory.", score: { NOV: 3 } },
+          { label: "Only enough for a quick, shareable observation.", score: { SMD: 3 } }
+        ]
+      },
+      {
+        id: 5,
+        text: "Is the primary goal to capture a highly specific feeling (Awe, Grief) or to move a character through a complex narrative journey?",
+        answers: [
+          { label: "Capture a specific feeling or concept.", score: { POE: 3, SST: 1 } },
+          { label: "Move a character through a clear arc to one non-negotiable endpoint.", score: { FEA: 2, NOV: 1 } },
+          { label: "Establish a continuous situation that yields episodic plots.", score: { TVP: 2, NOV: 1 } },
+          { label: "To inspire a quick comment or shareable action.", score: { SMD: 3 } }
+        ]
+      },
+      {
+        id: 6,
+        text: "Is the full scope contained in one house or a short period, or does it span vast worlds/indefinite time?",
+        answers: [
+          { label: "Highly contained (e.g., one room, one day, minimal characters).", score: { SST: 3, POE: 2, FEA: 1 } },
+          { label: "Spans multiple locations or significant time jumps, but with a clear endpoint.", score: { FEA: 2, NOV: 1 } },
+          { label: "Spans vast worlds, many subplots, or an indefinite, large-scale timeline.", score: { NOV: 3, TVP: 2 } },
+          { label: "The setting is irrelevant; it's just a phrase or idea.", score: { SMD: 3 } }
+        ]
+      }
+    ];
+
+    const FORMAT_INFO = {
+      TVP: {
+        name: "TV PILOT",
+        reason: "This story has legs and can generate multiple, repeatable episodes or seasons."
+      },
+      FEA: {
+        name: "FEATURE FILM",
+        reason: "This story builds toward a single emotional and narrative resolution that requires a 90–120 minute commitment."
+      },
+      SST: {
+        name: "SHORT STORY",
+        reason: "This idea focuses on a pivotal moment or a single, contained dramatic principle, best explored in one concise sitting."
+      },
+      NOV: {
+        name: "NOVEL",
+        reason: "This scope demands extensive internal detail, world-building, and complex parallel character journeys."
+      },
+      POE: {
+        name: "POEM",
+        reason: "This idea centers a specific feeling, image, or philosophical observation — not a sustained narrative engine."
+      },
+      SMD: {
+        name: "SOCIAL MEDIA POST",
+        reason: "This idea is a single, immediate observation or a quick, shareable reaction designed for instant consumption."
+      },
+      UNC: {
+        name: "UNCLEAR/NOT READY",
+        reason: "You have instincts, themes, or images — not a concrete story container yet."
+      }
+    };
+
+    let currentQuestionIndex = 0;
+    let scores = { TVP: 0, FEA: 0, SST: 0, NOV: 0, POE: 0, SMD: 0, UNC: 0 };
+    const totalQuestions = QUESTIONS.length;
+
+    const container = document.getElementById('tool-container');
+    let topScores = null;
+
+    function goToModule1() {
+      if (!MODULE_1_URL || MODULE_1_URL.includes("YOUR-GHL")) {
+        alert("Add your real Module 1 link to MODULE_1_URL in the code.");
+        return;
+      }
+      // Break out of iframe if needed (GHL embed)
+      window.top.location.href = MODULE_1_URL;
+    }
+
+    function calculateResult() {
+      const formatKeys = Object.keys(FORMAT_INFO).filter(k => k !== 'UNC');
+      topScores = formatKeys.map(k => ({ key: k, score: scores[k] }))
+                            .sort((a, b) => b.score - a.score);
+
+      const winningFormat = topScores[0].key;
+      const maxScore = topScores[0].score;
+      const secondMaxScore = topScores[1].score;
+
+      const scoreDifference = maxScore - secondMaxScore;
+      const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+      const uncPercentage = totalScore ? (scores.UNC / totalScore) * 100 : 0;
+
+      // UNCLEAR logic
+      if (maxScore < 5 || scoreDifference < 2 || uncPercentage > 30) {
+        return {
+          ...FORMAT_INFO.UNC,
+          isConceptLevel: true
+        };
+      }
+
+      const isConceptLevel = winningFormat === "POE" || winningFormat === "SMD";
+
+      return {
+        ...FORMAT_INFO[winningFormat],
+        isConceptLevel
+      };
+    }
+
+    function handleAnswer(answerScores) {
+      for (const format in answerScores) {
+        if (scores.hasOwnProperty(format)) scores[format] += answerScores[format];
+      }
+
+      currentQuestionIndex++;
+      if (currentQuestionIndex < totalQuestions) renderQuestion();
+      else renderResult();
+    }
+
+    function renderInstructions() {
+      container.innerHTML = `
+        <div class="font-body text-lg space-y-6">
+          <p class="text-charcoal font-medium text-xl">
+            Ready to find the right container for your story?
+          </p>
+          <p>
+            The goal here is simple: match the <span class="italic">feeling</span> and <span class="italic">scope</span> of your idea to the best structural container.
+            Don’t overthink — answer with your gut.
+          </p>
+          <p>
+            You’ll answer 6 quick questions about your idea’s size and engine.
+          </p>
+        </div>
+
+        <div class="mt-10 pt-6 border-t border-soft-accent/30 flex justify-end">
+          <button onclick="renderQuestion()"
+            class="px-6 py-3 font-body font-medium text-burgundy border-2 border-gold rounded-xl transition duration-150 hover:bg-gold/10 active:bg-gold/20 focus:outline-none focus:ring-4 focus:ring-gold/30">
+            Start Decision Matrix
+          </button>
+        </div>
+      `;
+    }
+
+    function renderQuestion() {
+      const q = QUESTIONS[currentQuestionIndex];
+      const qNum = currentQuestionIndex + 1;
+
+      container.innerHTML = `
+        <p class="font-body text-sm text-soft-accent mb-4">
+          Question ${qNum} of ${totalQuestions}
+        </p>
+
+        <div class="mb-8">
+          <h2 class="font-header text-charcoal text-2xl sm:text-3xl font-semibold leading-relaxed">
+            ${q.text}
+          </h2>
+        </div>
+
+        <div class="space-y-4">
+          ${q.answers.map((answer) => `
+            <button onclick='handleAnswer(${JSON.stringify(answer.score)})'
+              class="w-full text-left p-4 sm:p-5 font-body text-lg rounded-xl border-2 border-soft-accent/40 bg-parchment transition duration-150 ease-in-out hover:border-gold hover:bg-gold/10 focus:outline-none focus:ring-4 focus:ring-gold/30">
+              ${answer.label}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderResult() {
+      const result = calculateResult();
+
+      // Clear container vs concept-level (poem/social/unclear)
+      const isConceptLevel = result.isConceptLevel === true;
+
+      // Button label logic (your requirement)
+      const buttonLabel = isConceptLevel
+        ? "Go to Module 1: Generate a Screenplay Idea"
+        : "Proceed to Module 1";
+
+      let reasonHtml = "";
+
+      if (isConceptLevel) {
+        const winningName = topScores?.[0] ? FORMAT_INFO[topScores[0].key].name : "SCREENPLAY";
+        const secondName  = topScores?.[1] ? FORMAT_INFO[topScores[1].key].name : "SCREENPLAY";
+
+        let dynamicReason = result.reason;
+
+        if (result.name === "UNCLEAR/NOT READY") {
+          dynamicReason = `That’s totally okay. Your idea is trying to be too many things at once — it scored almost equally as a <span class="font-semibold">${winningName}</span> and a <span class="font-semibold">${secondName}</span>.`;
+        }
+
+        reasonHtml = `
+          <div class="text-left max-w-2xl mx-auto space-y-6">
+            <p class="font-body text-lg text-soft-gray">${dynamicReason}</p>
+
+            <div class="p-4 bg-parchment rounded-xl border border-gold/40 space-y-2">
+              <p class="font-body text-lg text-charcoal font-medium">
+                This doesn’t mean your idea isn’t valuable.
+              </p>
+              <p class="font-body text-lg text-soft-gray">
+                It means it isn’t a screenplay container yet.
+              </p>
+            </div>
+
+            <p class="font-body text-lg text-soft-gray">
+              <span class="text-gold font-medium">👉 Next step:</span> Set this idea aside (don’t delete it). Module 1 will help you generate a screenplay-ready premise.
+            </p>
+
+            <div class="text-sm text-left pl-4 space-y-2 text-soft-gray border-l-2 border-soft-accent/50">
+              <p>— Save it for later.</p>
+              <p>— Continue to Module 1 to build a screenplay idea that can survive 21 days.</p>
+              <p>— Or drop it in the community for quick insight.</p>
+            </div>
+
+            <p class="font-body text-base text-soft-accent italic">
+              Most writers arrive with feelings, not containers. That’s normal. The system will help you create one.
+            </p>
+          </div>
+        `;
+      } else {
+        reasonHtml = `
+          <div class="text-left max-w-2xl mx-auto space-y-6">
+            <p class="font-body text-lg text-soft-gray">
+              ${result.reason}
+            </p>
+
+            <div class="p-4 bg-parchment rounded-xl border border-gold/40">
+              <p class="font-body text-lg text-soft-gray">
+                <span class="text-gold font-medium">👉 Next step:</span> Lock this decision. Don’t negotiate with yourself. Move to Module 1.
+              </p>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="text-center space-y-8">
+          <div class="pb-6 border-b border-gold/40">
+            <p class="font-body text-xl text-soft-accent tracking-wider uppercase mb-2">
+              YOUR IDEA IS BEST SUITED AS A:
+            </p>
+            <h2 class="font-header text-charcoal text-5xl sm:text-6xl font-bold tracking-tight leading-tight">
+              ${result.name}
+            </h2>
+          </div>
+
+          ${reasonHtml}
+
+          <div class="pt-8 mt-8 border-t border-gold/30 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button onclick="goToModule1()"
+              class="px-8 py-3 font-body font-medium text-white bg-burgundy rounded-xl transition duration-150 hover:bg-burgundy/90 active:bg-burgundy/80 focus:outline-none focus:ring-4 focus:ring-burgundy/30 shadow-lg">
+              ${buttonLabel}
+            </button>
+
+            <button onclick="resetTool()"
+              class="px-8 py-3 font-body font-medium text-burgundy border-2 border-gold rounded-xl transition duration-150 hover:bg-gold/10 active:bg-gold/20 focus:outline-none focus:ring-4 focus:ring-gold/30">
+              Analyze Another Idea
+            </button>
+          </div>
+
+          <p class="text-sm text-soft-accent italic pt-2">
+            Choosing the right container is the first act of professionalism.
+          </p>
+        </div>
+      `;
+    }
+
+    function resetTool() {
+      currentQuestionIndex = 0;
+      scores = { TVP: 0, FEA: 0, SST: 0, NOV: 0, POE: 0, SMD: 0, UNC: 0 };
+      topScores = null;
+      renderInstructions();
+    }
+
+    document.addEventListener('DOMContentLoaded', renderInstructions);
+  </script>
+</body>
+</html>
+```
